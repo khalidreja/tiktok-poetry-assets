@@ -1,7 +1,7 @@
 name: decode-b64-images
 on:
   push:
-    paths: ['posts/**/*.b64', 'prog-langs/**/*.b64']
+    paths: ['posts/**/*.b64', 'prog-langs/**/*.b64', 'ai-tools/**/*.b64']
   workflow_dispatch:
 permissions:
   contents: write
@@ -13,8 +13,12 @@ jobs:
       - name: Decode .b64 files to binary
         run: |
           set -e
-          for dir in posts prog-langs; do
+          for dir in posts prog-langs ai-tools; do
             [ -d "$dir" ] || continue
+            for f in $(find "$dir" -name '*.tar.b64'); do
+              base64 -d "$f" | tar -x -C "$(dirname "$f")"
+              git rm -q "$f"
+            done
             for f in $(find "$dir" -name '*.b64'); do
               base64 -d "$f" > "${f%.b64}"
               git rm -q "$f"
